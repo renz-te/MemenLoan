@@ -1,0 +1,115 @@
+/* Global Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 50px;
+    background: #0069d9;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo img {
+    width: 45px;
+    height: 45px;
+}
+
+.logo h1 {
+    font-size: 1.6rem;
+    margin: 0;
+}
+
+.navbar ul {
+    list-style: none;
+    display: flex;
+    gap: 25px;
+    margin: 0;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.navbar a:hover {
+    color: #ffda79;
+}
+
+.logout-btn {
+    background: #ff4d4d;
+    padding: 8px 15px;
+    border-radius: 8px;
+}
+
+.logout-btn:hover {
+    background: #ff1a1a;
+}
+
+/* Content Sections */
+.content-section {
+    margin: 50px auto;
+    background: #ffffff10;
+    border-radius: 15px;
+    padding: 30px 50px;
+    width: 80%;
+    max-width: 900px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    animation: fadeIn 0.8s ease;
+}
+
+.content-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+}
+
+.account-card, .loan-card {
+    background: #ffffff15;
+    border-radius: 10px;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.btn {
+    background: #ffda79;
+    color: #000;
+    font-weight: 600;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    background: #ffd43b;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 25px;
+    background: #0069d9;
+    color: #fff;
+    margin-top: 50px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(20px);}
+    to {opacity: 1; transform: translateY(0);}
+}

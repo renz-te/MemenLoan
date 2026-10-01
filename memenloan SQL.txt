@@ -1,0 +1,177 @@
+-- MemenLoan Complete Database Schema
+-- ------------------------------------------------------
+
+--
+-- Table structure for table `users`
+-- This table stores all users, including clients, agents, and administrators.
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `firstName` varchar(100) NOT NULL,
+  `lastName` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `password` varchar(255) NOT NULL,
+  `role` enum('client','agent','admin') NOT NULL DEFAULT 'client',
+  `status` enum('Active','Suspended') NOT NULL DEFAULT 'Active',
+  `profile` varchar(255) DEFAULT NULL COMMENT 'File path to profile picture',
+  `pin` varchar(255) DEFAULT NULL COMMENT 'Hashed 4-digit security PIN',
+  `last_updated` datetime DEFAULT NULL COMMENT 'Timestamp for last profile edit',
+  `account_secured` tinyint(1) NOT NULL DEFAULT 0,
+  `email_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `id_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `address_verified` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  KEY `role` (`role`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Table structure for table `verifications`
+-- Stores all data and documents submitted by users for account validation.
+--
+
+CREATE TABLE `verifications` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `full_name` varchar(255) NOT NULL,
+  `birthdate` date NOT NULL,
+  `age` int(3) NOT NULL,
+  `gender` varchar(50) NOT NULL,
+  `address` text NOT NULL,
+  `id_type` varchar(100) NOT NULL,
+  `id_number` varchar(100) NOT NULL,
+  `id_image` varchar(255) NOT NULL,
+  `selfie_image` varchar(255) NOT NULL,
+  `occupation` varchar(255) NOT NULL,
+  `monthly_salary` decimal(10,2) NOT NULL,
+  `work_evidence` varchar(255) NOT NULL,
+  `bill_meralco` varchar(255) NOT NULL,
+  `bill_water` varchar(255) NOT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `date_applied` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `verifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Table structure for table `loans`
+-- This is the central table for all loan applications and their statuses.
+--
+
+CREATE TABLE `loans` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `agent_id` int(11) DEFAULT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `term` int(3) NOT NULL COMMENT 'Loan term in months',
+  `interest_rate` decimal(5,2) NOT NULL,
+  `reason` text DEFAULT NULL,
+  `wallet_type` varchar(50) NOT NULL,
+  `wallet_number` varchar(50) NOT NULL,
+  `status` enum('Pending','Approved','Rejected','Completed') NOT NULL DEFAULT 'Pending',
+  `date_applied` date NOT NULL,
+  `due_date` date DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `agent_id` (`agent_id`),
+  CONSTRAINT `loans_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `loans_ibfk_2` FOREIGN KEY (`agent_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Table structure for table `payment_proofs`
+-- This table holds user-submitted payment proofs awaiting admin verification.
+--
+
+CREATE TABLE `payment_proofs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `loan_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `proof_image` varchar(255) NOT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `submitted_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `loan_id` (`loan_id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `payment_proofs_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loans` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `payment_proofs_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Table structure for table `loan_payments`
+-- This table records all verified payments that have been approved by an administrator.
+--
+
+CREATE TABLE `loan_payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `loan_id` int(11) NOT NULL,
+  `amount_paid` decimal(10,2) NOT NULL,
+  `payment_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `loan_id` (`loan_id`),
+  CONSTRAINT `loan_payments_ibfk_1` FOREIGN KEY (`loan_id`) REFERENCES `loans` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Table structure for table `notifications`
+-- Stores system-generated notifications for users.
+--
+
+CREATE TABLE `notifications` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `date_created` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Table structure for table `user_requests`
+-- Manages contact form inquiries and manual password reset requests.
+--
+
+CREATE TABLE `user_requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT NULL,
+  `user_email` varchar(255) NOT NULL,
+  `request_type` varchar(50) NOT NULL,
+  `subject` varchar(255) DEFAULT NULL,
+  `message` text DEFAULT NULL,
+  `desired_password` varchar(255) DEFAULT NULL,
+  `proof_image` varchar(255) DEFAULT NULL,
+  `status` enum('pending','resolved') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `user_requests_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Table structure for table `password_resets`
+-- This table is for a token-based password reset system.
+-- Although the primary reset method is manual admin approval, this schema is included as it's defined in 'reset-password.php'.
+--
+
+CREATE TABLE `password_resets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
